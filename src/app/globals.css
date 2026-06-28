@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    @apply bg-primary/20 text-ink;
+  }
+  /* Visible keyboard focus everywhere (quality floor). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-canvas;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply container mx-auto px-5;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .heading-display {
+    @apply font-display font-semibold tracking-tight text-ink;
+  }
+
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/60;
+  }
+
+  /* ── Signature: the perforated ticket-stub edge ──────────────────────────
+     A real ticket has a torn perforation. We draw it as a row of small
+     punched holes on the left edge of ticket cards and the printed ticket. */
+  .ticket-stub {
+    position: relative;
+  }
+  .ticket-stub::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: 14px;
+    bottom: 14px;
+    width: 14px;
+    background-image: radial-gradient(circle at center, #fbfbfd 5px, transparent 5.5px);
+    background-size: 14px 22px;
+    background-repeat: repeat-y;
+  }
+
+  /* Horizontal perforation divider used inside the printed ticket. */
+  .perf-divide {
+    border-top: 2px dashed theme("colors.line");
+    position: relative;
+  }
+  .perf-divide::before,
+  .perf-divide::after {
+    content: "";
+    position: absolute;
+    top: -11px;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: theme("colors.canvas");
+  }
+  .perf-divide::before { left: -11px; }
+  .perf-divide::after  { right: -11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
