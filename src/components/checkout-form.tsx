@@ -81,7 +81,7 @@ export function CheckoutForm({ event }: { event: EventWithRelations }) {
     return (
       <div className="space-y-8">
         <div className="rounded-3xl border border-valid/20 bg-valid/5 p-6 text-center">
-          <p className="font-display text-2xl font-semibold text-ink">You're going! 🎉</p>
+          <p className="font-display text-2xl font-semibold text-ink">You&apos;re going! 🎉</p>
           <p className="mt-1 text-sm text-ink-muted">
             {tickets.length} ticket{tickets.length > 1 ? "s" : ""} for {event.title}. Show the QR at
             the door — staff scan it in one tap.

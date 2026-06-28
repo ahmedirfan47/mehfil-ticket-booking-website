@@ -33,7 +33,7 @@ export function Newsletter() {
             <Mail className="h-6 w-6" />
           </span>
           <h2 className="mt-5 font-display text-2xl font-semibold text-white sm:text-3xl">
-            Never miss what's on
+            Never miss what&apos;s on
           </h2>
           <p className="mt-2 text-white/80">
             Weekly picks of the best events in your city. No spam, unsubscribe anytime.

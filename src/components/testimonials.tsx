@@ -24,7 +24,7 @@ export function Testimonials() {
           key={t.name}
           className="rounded-3xl border border-line bg-surface p-6 shadow-card"
         >
-          <div className="text-3xl leading-none text-primary">"</div>
+         <div className="text-3xl leading-none text-primary">&ldquo;</div>
           <blockquote className="mt-2 text-ink-soft">{t.quote}</blockquote>
           <figcaption className="mt-5 flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-primary-50 font-semibold text-primary">
