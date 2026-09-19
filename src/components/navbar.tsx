@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/events", label: "Events" },
+  { href: "/events?type=trip", label: "Trips" },
+  { href: "/events?type=activity", label: "Activities" },
   { href: "/events?type=workshop", label: "Workshops" },
   { href: "/city/lahore", label: "Cities" },
   { href: "/staff", label: "Staff portal" },

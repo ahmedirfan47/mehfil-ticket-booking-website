@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { City, Category, EventWithRelations } from "@/lib/types";
+import type { City, Category, EventWithRelations, ListingType } from "@/lib/types";
 
 const EVENT_SELECT = `
   *,
@@ -17,6 +17,7 @@ function shape(row: any): EventWithRelations {
     organizer: row.organizer ?? null,
     gallery: row.gallery ?? [],
     faqs: row.faqs ?? [],
+    schedule: row.schedule ?? [],
     ticket_types: row.ticket_types ?? [],
   } as EventWithRelations;
 }
@@ -36,6 +37,7 @@ export async function getFeaturedEvents(limit = 5): Promise<EventWithRelations[]
 export async function getEvents(opts: {
   limit?: number;
   workshopsOnly?: boolean;
+  listingType?: ListingType;
   citySlug?: string;
   categorySlug?: string;
   q?: string;
@@ -47,6 +49,7 @@ export async function getEvents(opts: {
     .select(EVENT_SELECT)
     .eq("status", "published");
 
+  if (opts.listingType) query = query.eq("listing_type", opts.listingType);
   if (opts.workshopsOnly) query = query.eq("is_workshop", true);
   if (opts.q) query = query.ilike("title", `%${opts.q}%`);
   query = query.order(opts.orderBy ?? "starts_at", { ascending: true });
