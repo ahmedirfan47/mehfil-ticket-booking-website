@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Plus,
+  Crown,
 } from "lucide-react";
 import { DashboardShell, StatCard, type NavItem } from "@/components/dashboard-shell";
 import { RevenueArea } from "@/components/charts";
@@ -22,6 +23,12 @@ export const ORGANIZER_NAV: NavItem[] = [
   { href: "/dashboard/events/new", label: "Create event", icon: CalendarPlus },
 ];
 
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free",
+  pro: "Pro",
+  unlimited: "Unlimited",
+};
+
 function monthKey(d: Date) {
   return d.toLocaleDateString("en-PK", { month: "short" });
 }
@@ -35,7 +42,7 @@ export default async function OrganizerDashboard() {
 
   const { data: organizer } = await supabase
     .from("organizers")
-    .select("id, name, status")
+    .select("id, name, status, plan")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -44,7 +51,7 @@ export default async function OrganizerDashboard() {
       <DashboardShell title="Become an organizer" subtitle="Organizer" nav={ORGANIZER_NAV}>
         <div className="rounded-2xl border border-line bg-white p-8 text-center shadow-card">
           <p className="font-display text-lg font-semibold text-ink">
-            You don’t have an organizer profile yet
+            You don&apos;t have an organizer profile yet
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
             Organizer accounts are approved by the Mehfil team. Once approved, you can create
@@ -57,12 +64,23 @@ export default async function OrganizerDashboard() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, slug, status, starts_at, ticket_types(price_pkr, quantity_total, quantity_sold)")
+    .select("id, title, slug, status, starts_at, created_at, ticket_types(price_pkr, quantity_total, quantity_sold)")
     .eq("organizer_id", organizer.id)
     .order("starts_at", { ascending: false });
 
   const list = (events ?? []) as any[];
   const eventIds = list.map((e) => e.id);
+
+  // Plan usage: events created in the current calendar month.
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const usedThisMonth = list.filter(
+    (e) => e.created_at && new Date(e.created_at) >= monthStart
+  ).length;
+  const plan = (organizer.plan as string) ?? "free";
+  const planLimit = plan === "free" ? 3 : plan === "pro" ? 20 : null; // null = unlimited
+  const atLimit = planLimit !== null && usedThisMonth >= planLimit;
 
   let ticketsSold = 0;
   let revenue = 0;
@@ -100,6 +118,31 @@ export default async function OrganizerDashboard() {
       subtitle={organizer.status === "approved" ? "Organizer" : `Organizer · ${organizer.status}`}
       nav={ORGANIZER_NAV}
     >
+      {/* Subscription plan card */}
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-line bg-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-content-center rounded-xl bg-primary-50 text-primary">
+            <Crown className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-ink">
+              {PLAN_LABEL[plan] ?? "Free"} plan
+            </p>
+            <p className="text-xs text-ink-muted">
+              {planLimit === null
+                ? `${usedThisMonth} events this month · unlimited`
+                : `${usedThisMonth} of ${planLimit} events used this month`}
+              {atLimit ? " · limit reached" : ""}
+            </p>
+          </div>
+        </div>
+        <Link href="/pricing">
+          <Button size="sm" variant={atLimit ? "primary" : "outline"}>
+            {plan === "unlimited" ? "Manage plan" : "Upgrade plan"}
+          </Button>
+        </Link>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total events" value={String(list.length)} hint={`${published} published`} />
         <StatCard label="Tickets sold" value={ticketsSold.toLocaleString("en-PK")} />

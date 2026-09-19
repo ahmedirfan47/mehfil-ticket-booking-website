@@ -25,6 +25,12 @@ const schema = z.object({
   ticket_types: z.array(ticketTypeSchema).min(1).max(8),
 });
 
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free",
+  pro: "Pro",
+  unlimited: "Unlimited",
+};
+
 export async function POST(request: Request) {
   const supabase = createClient();
   const {
@@ -43,6 +49,31 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "You need an approved organizer profile to create events." },
       { status: 403 }
+    );
+  }
+
+  // Enforce the subscription plan's monthly listing limit before creating.
+  const { data: gate, error: gateError } = await supabase.rpc(
+    "organizer_can_create_event",
+    { p_organizer_id: organizer.id }
+  );
+  if (gateError) {
+    return NextResponse.json({ error: gateError.message }, { status: 500 });
+  }
+  if (gate && gate.allowed === false) {
+    const planName = PLAN_LABEL[gate.plan as string] ?? "current";
+    const limit = gate.limit;
+    return NextResponse.json(
+      {
+        error:
+          `You've reached your ${planName} plan limit of ${limit} event(s) this month ` +
+          `(${gate.used} used). Upgrade your plan to list more.`,
+        code: "PLAN_LIMIT_REACHED",
+        plan: gate.plan,
+        used: gate.used,
+        limit: gate.limit,
+      },
+      { status: 402 }
     );
   }
 
