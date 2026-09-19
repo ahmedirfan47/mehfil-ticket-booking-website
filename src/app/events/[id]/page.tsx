@@ -90,6 +90,20 @@ export default async function EventDetailsPage({ params }: { params: { id: strin
             </p>
           </section>
 
+          {event.video_url && (
+            <section>
+              <h2 className="heading-display text-2xl">Video</h2>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-ink">
+                <video
+                  src={event.video_url}
+                  controls
+                  playsInline
+                  className="aspect-video w-full"
+                />
+              </div>
+            </section>
+          )}
+
           {event.gallery.length > 0 && (
             <section>
               <h2 className="heading-display text-2xl">Gallery</h2>

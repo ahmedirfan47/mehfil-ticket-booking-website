@@ -10,6 +10,7 @@ import { Loader2, Plus, Trash2, CalendarDays, Plane, Compass } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MediaUploader, type MediaValue } from "@/components/media-uploader";
 import type { City, Category } from "@/lib/types";
 
 const schema = z.object({
@@ -17,7 +18,6 @@ const schema = z.object({
   title: z.string().min(3, "Give your listing a title"),
   summary: z.string().optional(),
   description: z.string().optional(),
-  cover_url: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
   city_id: z.string().optional(),
   category_id: z.string().optional(),
   venue: z.string().optional(),
@@ -52,6 +52,7 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [listingType, setListingType] = useState<"event" | "trip" | "activity">("event");
+  const [media, setMedia] = useState<MediaValue>({ cover_url: "", gallery: [], video_url: "" });
 
   const {
     register,
@@ -82,7 +83,14 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
         const res = await fetch("/api/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values, listing_type: listingType, publish }),
+          body: JSON.stringify({
+            ...values,
+            listing_type: listingType,
+            cover_url: media.cover_url,
+            gallery: media.gallery,
+            video_url: media.video_url,
+            publish,
+          }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -167,24 +175,23 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
               {...register("description")}
             />
           </div>
-          <div>
-            <Label htmlFor="cover_url">Cover image URL</Label>
-            <Input
-              id="cover_url"
-              className={field}
-              placeholder="https://..."
-              {...register("cover_url")}
-            />
-            {errors.cover_url && (
-              <p className="mt-1 text-xs text-invalid">{errors.cover_url.message}</p>
-            )}
-          </div>
           {listingType === "event" && (
             <label className="flex items-center gap-2 text-sm text-ink">
               <input type="checkbox" className="h-4 w-4 rounded border-line" {...register("is_workshop")} />
               This is a workshop
             </label>
           )}
+        </div>
+      </section>
+
+      {/* Media */}
+      <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
+        <h2 className="font-display text-lg font-semibold text-ink">Photos &amp; video</h2>
+        <p className="mt-1 text-xs text-ink-muted">
+          A great cover and gallery sell more tickets. Video is optional.
+        </p>
+        <div className="mt-4">
+          <MediaUploader value={media} onChange={setMedia} />
         </div>
       </section>
 

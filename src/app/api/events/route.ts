@@ -15,13 +15,14 @@ const schema = z.object({
   summary: z.string().max(300).optional().or(z.literal("")),
   description: z.string().max(8000).optional().or(z.literal("")),
   cover_url: z.string().url().optional().or(z.literal("")),
+  gallery: z.array(z.string().url()).max(12).optional(),
+  video_url: z.string().url().optional().or(z.literal("")),
   city_id: z.string().uuid().optional().or(z.literal("")),
   category_id: z.string().uuid().optional().or(z.literal("")),
   venue: z.string().max(160).optional().or(z.literal("")),
   address: z.string().max(300).optional().or(z.literal("")),
   starts_at: z.string().optional().or(z.literal("")),
   ends_at: z.string().optional().or(z.literal("")),
-  // Trip / activity specific (all optional).
   destination: z.string().max(160).optional().or(z.literal("")),
   duration_text: z.string().max(80).optional().or(z.literal("")),
   meeting_point: z.string().max(200).optional().or(z.literal("")),
@@ -59,7 +60,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Enforce the subscription plan's monthly listing limit before creating.
   const { data: gate, error: gateError } = await supabase.rpc(
     "organizer_can_create_event",
     { p_organizer_id: organizer.id }
@@ -100,7 +100,6 @@ export async function POST(request: Request) {
   }
   const input = parsed.data;
 
-  // Unique-ish slug; the DB unique constraint is the real guard.
   const slug = `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
   const isFree = input.ticket_types.every((t) => t.price_pkr === 0);
 
@@ -114,6 +113,8 @@ export async function POST(request: Request) {
       summary: input.summary || null,
       description: input.description || null,
       cover_url: input.cover_url || null,
+      gallery: input.gallery ?? [],
+      video_url: input.video_url || null,
       city_id: input.city_id || null,
       category_id: input.category_id || null,
       venue: input.venue || null,
