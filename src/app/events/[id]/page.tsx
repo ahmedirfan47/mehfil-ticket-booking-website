@@ -8,6 +8,8 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
+  ShieldAlert,
+  BadgeCheck,
   Ticket as TicketIcon,
   User,
 } from "lucide-react";
@@ -33,6 +35,8 @@ export default async function EventDetailsPage({ params }: { params: { id: strin
 
   const left = remaining(event.ticket_types);
   const price = lowestPrice(event.ticket_types);
+  const organizerVerified =
+    (event.organizer as any)?.verification === "approved";
   const mapsUrl =
     event.latitude && event.longitude
       ? `https://www.google.com/maps/search/?api=1&query=${event.latitude},${event.longitude}`
@@ -54,6 +58,11 @@ export default async function EventDetailsPage({ params }: { params: { id: strin
               {event.category && <Badge tone="primary">{event.category.name}</Badge>}
               {event.is_workshop && <Badge tone="accent">Workshop</Badge>}
               {event.is_free && <Badge tone="valid">Free entry</Badge>}
+              {organizerVerified && (
+                <Badge tone="valid">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Verified organizer
+                </Badge>
+              )}
             </div>
             <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold text-white sm:text-5xl">
               {event.title}
@@ -182,6 +191,18 @@ export default async function EventDetailsPage({ params }: { params: { id: strin
               {event.organizer && (
                 <p className="flex items-center gap-2">
                   <User className="h-4 w-4 text-primary" /> By {event.organizer.name}
+                  {organizerVerified && (
+                    <BadgeCheck className="h-4 w-4 text-valid" aria-label="Verified organizer" />
+                  )}
+                </p>
+              )}
+              {organizerVerified ? (
+                <p className="flex items-center gap-2 text-valid">
+                  <ShieldCheck className="h-4 w-4" /> Verified organizer
+                </p>
+              ) : (
+                <p className="flex items-center gap-2 text-ink-muted">
+                  <ShieldAlert className="h-4 w-4" /> Organizer not yet verified
                 </p>
               )}
               {event.organizer_contact && (
