@@ -10,6 +10,7 @@ const ticketTypeSchema = z.object({
 });
 
 const schema = z.object({
+  listing_type: z.enum(["event", "trip", "activity"]).default("event"),
   title: z.string().min(3).max(160),
   summary: z.string().max(300).optional().or(z.literal("")),
   description: z.string().max(8000).optional().or(z.literal("")),
@@ -20,6 +21,12 @@ const schema = z.object({
   address: z.string().max(300).optional().or(z.literal("")),
   starts_at: z.string().optional().or(z.literal("")),
   ends_at: z.string().optional().or(z.literal("")),
+  // Trip / activity specific (all optional).
+  destination: z.string().max(160).optional().or(z.literal("")),
+  duration_text: z.string().max(80).optional().or(z.literal("")),
+  meeting_point: z.string().max(200).optional().or(z.literal("")),
+  included: z.string().max(2000).optional().or(z.literal("")),
+  excluded: z.string().max(2000).optional().or(z.literal("")),
   is_workshop: z.boolean().default(false),
   publish: z.boolean().default(false),
   ticket_types: z.array(ticketTypeSchema).min(1).max(8),
@@ -66,7 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          `You've reached your ${planName} plan limit of ${limit} event(s) this month ` +
+          `You've reached your ${planName} plan limit of ${limit} listing(s) this month ` +
           `(${gate.used} used). Upgrade your plan to list more.`,
         code: "PLAN_LIMIT_REACHED",
         plan: gate.plan,
@@ -101,6 +108,7 @@ export async function POST(request: Request) {
     .from("events")
     .insert({
       organizer_id: organizer.id,
+      listing_type: input.listing_type,
       title: input.title,
       slug,
       summary: input.summary || null,
@@ -112,6 +120,11 @@ export async function POST(request: Request) {
       address: input.address || null,
       starts_at: input.starts_at || null,
       ends_at: input.ends_at || null,
+      destination: input.destination || null,
+      duration_text: input.duration_text || null,
+      meeting_point: input.meeting_point || null,
+      included: input.included || null,
+      excluded: input.excluded || null,
       is_workshop: input.is_workshop,
       is_free: isFree,
       status: input.publish ? "published" : "draft",
@@ -121,7 +134,7 @@ export async function POST(request: Request) {
 
   if (eventError || !event) {
     return NextResponse.json(
-      { error: eventError?.message ?? "Could not create event." },
+      { error: eventError?.message ?? "Could not create listing." },
       { status: 400 }
     );
   }
@@ -135,7 +148,6 @@ export async function POST(request: Request) {
   }));
   const { error: ttError } = await supabase.from("ticket_types").insert(rows);
   if (ttError) {
-    // Roll back the event so we don't leave a ticketless shell.
     await supabase.from("events").delete().eq("id", event.id);
     return NextResponse.json({ error: ttError.message }, { status: 400 });
   }

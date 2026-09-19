@@ -6,6 +6,7 @@
 export type UserRole = "attendee" | "organizer" | "staff" | "admin";
 export type EventStatus = "draft" | "published" | "cancelled" | "completed";
 export type TicketStatus = "valid" | "used" | "cancelled" | "refunded";
+export type ListingType = "event" | "trip" | "activity";
 export type ScanResult =
   | "valid"
   | "already_used"
@@ -50,6 +51,7 @@ export interface Organizer {
   email: string | null;
   phone: string | null;
   website: string | null;
+  verification?: string | null;
 }
 
 export interface EventRecord {
@@ -61,6 +63,7 @@ export interface EventRecord {
   description: string | null;
   cover_url: string | null;
   gallery: string[];
+  video_url: string | null;
   city_id: string | null;
   category_id: string | null;
   venue: string | null;
@@ -73,9 +76,18 @@ export interface EventRecord {
   rules: string | null;
   faqs: { q: string; a: string }[];
   status: EventStatus;
+  listing_type: ListingType;
+  destination: string | null;
+  duration_text: string | null;
+  meeting_point: string | null;
+  included: string | null;
+  excluded: string | null;
+  schedule: { label?: string; starts_at?: string; ends_at?: string; seats?: number; day?: string; time?: string }[];
   is_featured: boolean;
   is_workshop: boolean;
   is_free: boolean;
+  is_promoted: boolean;
+  promoted_until: string | null;
   view_count: number;
 }
 
@@ -93,7 +105,6 @@ export interface TicketRecord {
   qr_token: string;
   event_id: string;
   ticket_type_id: string;
-  holder_name: string | null;
   seat_label: string | null;
   status: TicketStatus;
   scanned_at: string | null;

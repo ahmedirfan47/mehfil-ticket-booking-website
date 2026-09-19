@@ -6,14 +6,15 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, CalendarDays, Plane, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { City, Category } from "@/lib/types";
 
 const schema = z.object({
-  title: z.string().min(3, "Give your event a title"),
+  listing_type: z.enum(["event", "trip", "activity"]).default("event"),
+  title: z.string().min(3, "Give your listing a title"),
   summary: z.string().optional(),
   description: z.string().optional(),
   cover_url: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
@@ -23,6 +24,11 @@ const schema = z.object({
   address: z.string().optional(),
   starts_at: z.string().optional(),
   ends_at: z.string().optional(),
+  destination: z.string().optional(),
+  duration_text: z.string().optional(),
+  meeting_point: z.string().optional(),
+  included: z.string().optional(),
+  excluded: z.string().optional(),
   is_workshop: z.boolean().default(false),
   ticket_types: z
     .array(
@@ -36,24 +42,38 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
+const TYPES = [
+  { id: "event", label: "Event", icon: CalendarDays, hint: "Concert, workshop, festival" },
+  { id: "trip", label: "Trip", icon: Plane, hint: "Tour, travel package" },
+  { id: "activity", label: "Activity", icon: Compass, hint: "Class, experience, session" },
+] as const;
+
 export function EventForm({ cities, categories }: { cities: City[]; categories: Category[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [listingType, setListingType] = useState<"event" | "trip" | "activity">("event");
 
   const {
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
+      listing_type: "event",
       is_workshop: false,
       ticket_types: [{ name: "General", price_pkr: 0, quantity_total: 100 }],
     },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "ticket_types" });
+
+  const chooseType = (t: "event" | "trip" | "activity") => {
+    setListingType(t);
+    setValue("listing_type", t);
+  };
 
   const submit = (publish: boolean) =>
     handleSubmit(async (values) => {
@@ -62,14 +82,14 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
         const res = await fetch("/api/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values, publish }),
+          body: JSON.stringify({ ...values, listing_type: listingType, publish }),
         });
         const data = await res.json();
         if (!res.ok) {
-          toast.error(data.error ?? "Could not create event.");
+          toast.error(data.error ?? "Could not create listing.");
           return;
         }
-        toast.success(publish ? "Event published!" : "Draft saved.");
+        toast.success(publish ? "Listing published!" : "Draft saved.");
         router.push("/dashboard/events");
         router.refresh();
       } catch {
@@ -80,15 +100,52 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
     })();
 
   const field = "mt-1.5";
+  const isTrip = listingType === "trip";
+  const isActivity = listingType === "activity";
+  const isTripOrActivity = isTrip || isActivity;
+  const noun = isTrip ? "trip" : isActivity ? "activity" : "event";
 
   return (
     <form className="space-y-8">
+      {/* Type picker */}
+      <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
+        <h2 className="font-display text-lg font-semibold text-ink">What are you listing?</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {TYPES.map((t) => {
+            const active = listingType === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => chooseType(t.id)}
+                className={
+                  "flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition " +
+                  (active ? "border-primary bg-primary-50" : "border-line hover:border-primary/40")
+                }
+              >
+                <span
+                  className={
+                    "grid h-9 w-9 place-content-center rounded-xl " +
+                    (active ? "bg-primary text-white" : "bg-primary-50 text-primary")
+                  }
+                >
+                  <t.icon className="h-4 w-4" />
+                </span>
+                <span className="font-semibold text-ink">{t.label}</span>
+                <span className="text-xs text-ink-muted">{t.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Details */}
       <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
         <h2 className="font-display text-lg font-semibold text-ink">Details</h2>
         <div className="mt-4 grid gap-4">
           <div>
             <Label htmlFor="title">Title</Label>
-            <Input id="title" className={field} placeholder="Indie Night Live" {...register("title")} />
+            <Input id="title" className={field} placeholder="Give it a clear name" {...register("title")} />
             {errors.title && <p className="mt-1 text-xs text-invalid">{errors.title.message}</p>}
           </div>
           <div>
@@ -96,7 +153,7 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
             <Input
               id="summary"
               className={field}
-              placeholder="One line that sells the night"
+              placeholder="One line that sells it"
               {...register("summary")}
             />
           </div>
@@ -122,13 +179,66 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
               <p className="mt-1 text-xs text-invalid">{errors.cover_url.message}</p>
             )}
           </div>
-          <label className="flex items-center gap-2 text-sm text-ink">
-            <input type="checkbox" className="h-4 w-4 rounded border-line" {...register("is_workshop")} />
-            This is a workshop
-          </label>
+          {listingType === "event" && (
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input type="checkbox" className="h-4 w-4 rounded border-line" {...register("is_workshop")} />
+              This is a workshop
+            </label>
+          )}
         </div>
       </section>
 
+      {/* Trip / activity specific */}
+      {isTripOrActivity && (
+        <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
+          <h2 className="font-display text-lg font-semibold text-ink">
+            {isTrip ? "Trip details" : "Activity details"}
+          </h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {isTrip && (
+              <div>
+                <Label htmlFor="destination">Destination</Label>
+                <Input id="destination" className={field} placeholder="Hunza Valley" {...register("destination")} />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="duration_text">Duration</Label>
+              <Input
+                id="duration_text"
+                className={field}
+                placeholder={isTrip ? "4 days, 3 nights" : "2 hours"}
+                {...register("duration_text")}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label htmlFor="meeting_point">Meeting / pickup point</Label>
+              <Input id="meeting_point" className={field} placeholder="Liberty Roundabout, Lahore" {...register("meeting_point")} />
+            </div>
+            <div>
+              <Label htmlFor="included">What&apos;s included</Label>
+              <textarea
+                id="included"
+                rows={3}
+                className="mt-1.5 w-full rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                placeholder="Transport, meals, guide..."
+                {...register("included")}
+              />
+            </div>
+            <div>
+              <Label htmlFor="excluded">What&apos;s not included</Label>
+              <textarea
+                id="excluded"
+                rows={3}
+                className="mt-1.5 w-full rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                placeholder="Personal expenses, insurance..."
+                {...register("excluded")}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* When & where */}
       <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
         <h2 className="font-display text-lg font-semibold text-ink">When &amp; where</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -163,7 +273,7 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
             </select>
           </div>
           <div>
-            <Label htmlFor="venue">Venue</Label>
+            <Label htmlFor="venue">{isTrip ? "Departure city / venue" : "Venue"}</Label>
             <Input id="venue" className={field} placeholder="Alhamra Arts Council" {...register("venue")} />
           </div>
           <div>
@@ -171,19 +281,22 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
             <Input id="address" className={field} placeholder="The Mall, Lahore" {...register("address")} />
           </div>
           <div>
-            <Label htmlFor="starts_at">Starts</Label>
+            <Label htmlFor="starts_at">{isTrip ? "Departure date" : "Starts"}</Label>
             <Input id="starts_at" type="datetime-local" className={field} {...register("starts_at")} />
           </div>
           <div>
-            <Label htmlFor="ends_at">Ends</Label>
+            <Label htmlFor="ends_at">{isTrip ? "Return date" : "Ends"}</Label>
             <Input id="ends_at" type="datetime-local" className={field} {...register("ends_at")} />
           </div>
         </div>
       </section>
 
+      {/* Tickets / seats / spots */}
       <section className="rounded-2xl border border-line bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-ink">Tickets</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">
+            {isTrip ? "Seats & pricing" : isActivity ? "Spots & pricing" : "Tickets"}
+          </h2>
           <Button
             type="button"
             size="sm"
@@ -198,7 +311,11 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
             <div key={f.id} className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2">
               <div>
                 {i === 0 && <Label>Name</Label>}
-                <Input className="mt-1.5" placeholder="General" {...register(`ticket_types.${i}.name`)} />
+                <Input
+                  className="mt-1.5"
+                  placeholder={isTrip ? "Standard seat" : isActivity ? "Standard spot" : "General"}
+                  {...register(`ticket_types.${i}.name`)}
+                />
               </div>
               <div className="w-28">
                 {i === 0 && <Label>Price (Rs)</Label>}
@@ -223,20 +340,20 @@ export function EventForm({ cities, categories }: { cities: City[]; categories: 
                 size="icon"
                 variant="ghost"
                 onClick={() => fields.length > 1 && remove(i)}
-                aria-label="Remove ticket type"
+                aria-label="Remove type"
               >
                 <Trash2 className="h-4 w-4 text-ink-muted" />
               </Button>
             </div>
           ))}
         </div>
-        <p className="mt-2 text-xs text-ink-muted">Set price to 0 for a free event.</p>
+        <p className="mt-2 text-xs text-ink-muted">Set price to 0 for a free {noun}.</p>
       </section>
 
       <div className="flex flex-wrap gap-3">
         <Button type="button" variant="primary" disabled={busy} onClick={() => submit(true)}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Publish event
+          Publish {noun}
         </Button>
         <Button type="button" variant="outline" disabled={busy} onClick={() => submit(false)}>
           Save as draft
