@@ -3,12 +3,19 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+const travellerSchema = z.object({
+  name: z.string().max(120).optional().or(z.literal("")),
+  phone: z.string().max(40).optional().or(z.literal("")),
+  ref: z.string().max(60).optional().or(z.literal("")),
+});
+
 const schema = z.object({
   ticketTypeId: z.string().uuid(),
   quantity: z.number().int().min(1).max(10),
   buyerName: z.string().min(2).max(80),
   buyerEmail: z.string().email(),
   buyerPhone: z.string().min(7).max(20).optional().or(z.literal("")),
+  travellers: z.array(travellerSchema).max(10).optional(),
 });
 
 export async function POST(request: Request) {
@@ -28,14 +35,11 @@ export async function POST(request: Request) {
   }
   const input = parsed.data;
 
-  // Attach the order to the signed-in user if there is one (guest checkout ok).
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // The atomic function enforces inventory + unique codes. Service role is used
-  // only to call it; it does not let the client write tables directly.
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("purchase_tickets", {
     p_ticket_type_id: input.ticketTypeId,
@@ -44,10 +48,10 @@ export async function POST(request: Request) {
     p_buyer_email: input.buyerEmail,
     p_buyer_phone: input.buyerPhone || null,
     p_user_id: user?.id ?? null,
+    p_travellers: input.travellers && input.travellers.length ? input.travellers : null,
   });
 
   if (error) {
-    // Surfaces "Only N ticket(s) left" / "no longer on sale" from the function.
     return NextResponse.json({ error: error.message }, { status: 409 });
   }
 
