@@ -4,6 +4,7 @@ import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { StatCard } from "@/components/dashboard-shell";
 import { RevenueArea, CategoryPie } from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
+import { VerificationReview } from "@/components/verification-review";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPKR, formatDateShort } from "@/lib/utils";
@@ -57,6 +58,7 @@ export default async function AdminDashboard() {
     { data: orders },
     { data: events },
     { data: pendingOrgs },
+    { data: pendingVerifs },
   ] = await Promise.all([
     admin.from("events").select("*", { count: "exact", head: true }),
     admin.from("events").select("*", { count: "exact", head: true }).eq("status", "published"),
@@ -75,6 +77,12 @@ export default async function AdminDashboard() {
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(6),
+    admin
+      .from("organizer_verifications")
+      .select("id, legal_name, business_email, phone, website, facebook, instagram, linkedin, notes, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(10),
   ]);
 
   const revenue = (orders ?? []).reduce((s, o: any) => s + (o.amount_pkr ?? 0), 0);
@@ -93,6 +101,8 @@ export default async function AdminDashboard() {
     byCategory.set(name, (byCategory.get(name) ?? 0) + 1);
   }
   const pie = Array.from(byCategory, ([label, value]) => ({ label, value }));
+
+  const verifs = (pendingVerifs ?? []) as any[];
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -118,7 +128,59 @@ export default async function AdminDashboard() {
           <StatCard label="Organizers" value={String(organizerCount ?? 0)} />
           <StatCard label="Tickets" value={String(ticketCount ?? 0)} />
           <StatCard label="Revenue" value={formatPKR(revenue)} />
-          <StatCard label="Pending orgs" value={String(pendingOrgs?.length ?? 0)} />
+          <StatCard label="Verifications" value={String(verifs.length)} hint="pending" />
+        </div>
+
+        {/* Verification review queue */}
+        <div className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-card">
+          <h2 className="mb-4 font-display text-lg font-semibold text-ink">
+            Organizer verifications
+          </h2>
+          {verifs.length === 0 ? (
+            <p className="py-6 text-center text-sm text-ink-muted">
+              No verification requests waiting.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {verifs.map((v) => (
+                <div key={v.id} className="rounded-xl border border-line p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium text-ink">{v.legal_name}</p>
+                      <p className="text-xs text-ink-muted">
+                        {v.business_email} · {v.phone}
+                        {v.created_at ? ` · ${formatDateShort(v.created_at)}` : ""}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                        {v.website && (
+                          <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            Website
+                          </a>
+                        )}
+                        {v.facebook && (
+                          <a href={v.facebook} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            Facebook
+                          </a>
+                        )}
+                        {v.instagram && (
+                          <a href={v.instagram} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            Instagram
+                          </a>
+                        )}
+                        {v.linkedin && (
+                          <a href={v.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                      {v.notes && <p className="mt-2 text-xs text-ink-soft">{v.notes}</p>}
+                    </div>
+                    <VerificationReview id={v.id} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -179,8 +241,8 @@ export default async function AdminDashboard() {
         </div>
 
         <p className="mt-8 text-center text-xs text-ink-muted">
-          Approvals, bans, and content moderation run through Supabase RLS — admin mutations are
-          scoped by the <code>current_role()</code> policies in <code>rls.sql</code>.
+          Approvals and moderation run through Supabase RLS &mdash; admin mutations are scoped by
+          the <code>mehfil_role()</code> policies in <code>rls.sql</code>.
         </p>
       </main>
     </div>

@@ -6,6 +6,9 @@ import {
   CalendarDays,
   Plus,
   Crown,
+  BadgeCheck,
+  ShieldCheck,
+  Clock,
 } from "lucide-react";
 import { DashboardShell, StatCard, type NavItem } from "@/components/dashboard-shell";
 import { RevenueArea } from "@/components/charts";
@@ -21,6 +24,7 @@ export const ORGANIZER_NAV: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/events", label: "My events", icon: CalendarDays },
   { href: "/dashboard/events/new", label: "Create event", icon: CalendarPlus },
+  { href: "/dashboard/verify", label: "Get verified", icon: ShieldCheck },
 ];
 
 const PLAN_LABEL: Record<string, string> = {
@@ -42,7 +46,7 @@ export default async function OrganizerDashboard() {
 
   const { data: organizer } = await supabase
     .from("organizers")
-    .select("id, name, status, plan")
+    .select("id, name, status, plan, verification")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -82,6 +86,8 @@ export default async function OrganizerDashboard() {
   const planLimit = plan === "free" ? 3 : plan === "pro" ? 20 : null; // null = unlimited
   const atLimit = planLimit !== null && usedThisMonth >= planLimit;
 
+  const verification = (organizer.verification as string) ?? "unverified";
+
   let ticketsSold = 0;
   let revenue = 0;
   for (const e of list) {
@@ -118,6 +124,31 @@ export default async function OrganizerDashboard() {
       subtitle={organizer.status === "approved" ? "Organizer" : `Organizer · ${organizer.status}`}
       nav={ORGANIZER_NAV}
     >
+      {/* Verification status banner */}
+      {verification === "approved" ? (
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-valid/30 bg-valid/5 px-4 py-3 text-sm text-ink-soft">
+          <BadgeCheck className="h-4 w-4 shrink-0 text-valid" />
+          Your organizer account is verified. Buyers see a trust badge on your events.
+        </div>
+      ) : verification === "pending" ? (
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-line bg-primary-50/50 px-4 py-3 text-sm text-ink-soft">
+          <Clock className="h-4 w-4 shrink-0 text-primary" />
+          Verification under review — we&apos;ll notify you once it&apos;s approved.
+        </div>
+      ) : (
+        <div className="mb-4 flex flex-col gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between">
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-ink-muted" />
+            {verification === "rejected"
+              ? "Your verification wasn't approved. Please resubmit."
+              : "Get verified to earn a trust badge buyers can see."}
+          </span>
+          <Link href="/dashboard/verify">
+            <Button size="sm" variant="outline">Get verified</Button>
+          </Link>
+        </div>
+      )}
+
       {/* Subscription plan card */}
       <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-line bg-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
