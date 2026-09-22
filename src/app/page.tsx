@@ -8,6 +8,8 @@ import { Newsletter } from "@/components/newsletter";
 import { Testimonials } from "@/components/testimonials";
 import { Sponsors } from "@/components/sponsors";
 import { EmptyState } from "@/components/empty-state";
+import { WaitlistForm } from "@/components/waitlist-form";
+import { Sparkles } from "lucide-react";
 import {
   getFeaturedEvents,
   getEvents,
@@ -31,6 +33,25 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Launch waitlist band */}
+      <section className="border-b border-line bg-mesh-hero">
+        <div className="container-page py-10 text-center">
+          <span className="eyebrow justify-center">
+            <Sparkles className="h-4 w-4" /> Launching soon
+          </span>
+          <h2 className="heading-display mx-auto mt-3 max-w-2xl text-2xl sm:text-3xl">
+            Be first through the door when Mehfil goes live
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
+            Join the waitlist and we&apos;ll email you the moment tickets, trips, and activities go
+            on sale.
+          </p>
+          <div className="mt-6">
+            <WaitlistForm />
+          </div>
+        </div>
+      </section>
+
       <Hero />
 
       {featured.length > 0 && (
