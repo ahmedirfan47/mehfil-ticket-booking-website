@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ShieldCheck, ArrowLeft } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Mail } from "lucide-react";
 import { StatCard } from "@/components/dashboard-shell";
 import { RevenueArea, CategoryPie } from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
@@ -55,16 +55,19 @@ export default async function AdminDashboard() {
     { count: userCount },
     { count: organizerCount },
     { count: ticketCount },
+    { count: waitlistCount },
     { data: orders },
     { data: events },
     { data: pendingOrgs },
     { data: pendingVerifs },
+    { data: waitlist },
   ] = await Promise.all([
     admin.from("events").select("*", { count: "exact", head: true }),
     admin.from("events").select("*", { count: "exact", head: true }).eq("status", "published"),
     admin.from("profiles").select("*", { count: "exact", head: true }),
     admin.from("organizers").select("*", { count: "exact", head: true }),
     admin.from("tickets").select("*", { count: "exact", head: true }),
+    admin.from("waitlist").select("*", { count: "exact", head: true }),
     admin.from("orders").select("amount_pkr, created_at, status").eq("status", "paid"),
     admin
       .from("events")
@@ -83,6 +86,11 @@ export default async function AdminDashboard() {
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(10),
+    admin
+      .from("waitlist")
+      .select("email, created_at, notified")
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const revenue = (orders ?? []).reduce((s, o: any) => s + (o.amount_pkr ?? 0), 0);
@@ -101,8 +109,8 @@ export default async function AdminDashboard() {
     byCategory.set(name, (byCategory.get(name) ?? 0) + 1);
   }
   const pie = Array.from(byCategory, ([label, value]) => ({ label, value }));
-
   const verifs = (pendingVerifs ?? []) as any[];
+  const waitRows = (waitlist ?? []) as any[];
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -127,8 +135,52 @@ export default async function AdminDashboard() {
           <StatCard label="Users" value={String(userCount ?? 0)} />
           <StatCard label="Organizers" value={String(organizerCount ?? 0)} />
           <StatCard label="Tickets" value={String(ticketCount ?? 0)} />
-          <StatCard label="Revenue" value={formatPKR(revenue)} />
+          <StatCard label="Waitlist" value={String(waitlistCount ?? 0)} />
           <StatCard label="Verifications" value={String(verifs.length)} hint="pending" />
+        </div>
+
+        {/* Waitlist */}
+        <div className="mt-6 rounded-2xl border border-line bg-white p-5 shadow-card">
+          <div className="mb-4 flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg font-semibold text-ink">
+              Launch waitlist ({waitlistCount ?? 0})
+            </h2>
+          </div>
+          {waitRows.length === 0 ? (
+            <p className="py-6 text-center text-sm text-ink-muted">No signups yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-muted">
+                    <th className="px-3 py-2 font-medium">Email</th>
+                    <th className="px-3 py-2 font-medium">Joined</th>
+                    <th className="px-3 py-2 font-medium">Notified</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {waitRows.map((w) => (
+                    <tr key={w.email}>
+                      <td className="px-3 py-2 font-medium text-ink">{w.email}</td>
+                      <td className="px-3 py-2 text-ink-muted">
+                        {w.created_at ? formatDateShort(w.created_at) : "—"}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge tone={w.notified ? "valid" : "neutral"}>
+                          {w.notified ? "sent" : "pending"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-3 text-xs text-ink-muted">
+                Showing the 20 most recent of {waitlistCount ?? 0}. Full export and launch email
+                come with the email integration.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Verification review queue */}
