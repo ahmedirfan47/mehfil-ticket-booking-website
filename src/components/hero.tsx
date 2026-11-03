@@ -1,65 +1,122 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { CalendarDays, MapPin, QrCode } from "lucide-react";
 import { SearchBar } from "@/components/search-bar";
 
 const stats = [
-  { value: "10", label: "Cities" },
-  { value: "13", label: "Categories" },
-  { value: "1-tap", label: "Door entry" },
+  { value: "3", label: "ways to gather" },
+  { value: "10", label: "cities" },
+  { value: "1 tap", label: "at the door" },
 ];
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-mesh-hero">
-      <div className="container-page py-16 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-3xl text-center"
-        >
-          <span className="eyebrow justify-center">
-            <Sparkles className="h-4 w-4" /> Live across Pakistan
-          </span>
-          <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-6xl">
-            Find your next{" "}
-            <span className="relative whitespace-nowrap text-primary">
-              mehfil
-              <svg
-                className="absolute -bottom-2 left-0 w-full"
-                viewBox="0 0 300 12"
-                fill="none"
-                aria-hidden
-              >
-                <path
-                  d="M2 9C75 3 225 3 298 9"
-                  stroke="#FF6B4A"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-ink-muted">
-            Concerts, workshops, festivals and tech meetups — booked in seconds,
-            scanned at the door. No printing, no queues.
-          </p>
+    <section className="relative overflow-hidden bg-daylight">
+      <div className="container-page grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-[1.1fr_0.9fr]">
+        {/* Left: the promise */}
+        <div>
+          <motion.span
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="eyebrow"
+          >
+            Events, trips and activities across Pakistan
+          </motion.span>
 
-          <div className="mt-8 flex justify-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-5 font-display text-display-xl font-semibold text-ink"
+          >
+            Something to look forward to.
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.12 }}
+            className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted"
+          >
+            Book a concert, a trip to the north, or a Sunday class — in seconds.
+            Your phone is the ticket. No printing, no queues.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.18 }}
+            className="mt-8 max-w-xl"
+          >
             <SearchBar />
-          </div>
+          </motion.div>
 
-          <div className="mt-10 flex items-center justify-center gap-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 flex gap-10"
+          >
             {stats.map((s) => (
-              <div key={s.label} className="text-center">
+              <div key={s.label}>
                 <p className="font-display text-2xl font-semibold text-ink">{s.value}</p>
-                <p className="text-xs uppercase tracking-wide text-ink-muted">{s.label}</p>
+                <p className="text-sm text-ink-muted">{s.label}</p>
               </div>
             ))}
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Right: the living ticket — the one bold moment */}
+        <div className="relative mx-auto w-full max-w-sm">
+          <motion.div
+            initial={{ opacity: 0, y: -18, rotate: -3 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            transition={{ duration: 0.9, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="ticket-stub overflow-hidden rounded-3xl border border-mist bg-surface shadow-lift"
+          >
+            <div className="bg-sky px-7 py-6 text-white">
+              <p className="text-sm font-medium text-white/80">Lahore Live</p>
+              <p className="mt-1 font-display text-2xl font-semibold leading-tight">
+                Winter Concert
+              </p>
+              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/85">
+                <span className="flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" /> Sat, 7:00 PM
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" /> Alhamra
+                </span>
+              </div>
+            </div>
+
+            <div className="perf-divide mx-7" />
+
+            <div className="flex items-center justify-between gap-4 px-7 py-6">
+              <div>
+                <p className="text-xs text-ink-muted">Admit one</p>
+                <p className="font-display text-lg font-semibold tracking-wide text-ink">
+                  MHF-7K2P9Q<span className="sr-only"> sample ticket code</span>
+                </p>
+                <p className="mt-1 text-xs text-ink-muted">General · Rs 3,500</p>
+              </div>
+              <div className="grid h-20 w-20 place-content-center rounded-2xl bg-ink text-white">
+                <QrCode className="h-10 w-10" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* The coral spark — rare, deliberate. */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+            className="absolute -bottom-4 -left-4 rounded-full bg-coral px-4 py-2 text-sm font-semibold text-white shadow-coral"
+          >
+            You&apos;re in 🎟
+          </motion.div>
+        </div>
       </div>
     </section>
   );

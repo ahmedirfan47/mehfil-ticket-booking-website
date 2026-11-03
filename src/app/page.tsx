@@ -4,12 +4,10 @@ import { EventCard } from "@/components/event-card";
 import { CategoryGrid } from "@/components/category-grid";
 import { CityGrid } from "@/components/city-grid";
 import { SectionHeader } from "@/components/section-header";
-import { Newsletter } from "@/components/newsletter";
-import { Testimonials } from "@/components/testimonials";
-import { Sponsors } from "@/components/sponsors";
 import { EmptyState } from "@/components/empty-state";
 import { WaitlistForm } from "@/components/waitlist-form";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Store } from "lucide-react";
+import Link from "next/link";
 import {
   getFeaturedEvents,
   getEvents,
@@ -34,15 +32,15 @@ export default async function HomePage() {
   return (
     <>
       {/* Launch waitlist band */}
-      <section className="border-b border-line bg-mesh-hero">
-        <div className="container-page py-10 text-center">
+      <section className="border-b border-mist bg-daylight">
+        <div className="container-page py-12 text-center">
           <span className="eyebrow justify-center">
             <Sparkles className="h-4 w-4" /> Launching soon
           </span>
-          <h2 className="heading-display mx-auto mt-3 max-w-2xl text-2xl sm:text-3xl">
+          <h2 className="heading-display mx-auto mt-3 max-w-2xl text-display-md">
             Be first through the door when Mehfil goes live
           </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
+          <p className="mx-auto mt-3 max-w-md text-ink-muted">
             Join the waitlist and we&apos;ll email you the moment tickets, trips, and activities go
             on sale.
           </p>
@@ -68,43 +66,33 @@ export default async function HomePage() {
         <CategoryGrid categories={categories} />
       </section>
 
-      <section className="container-page py-4">
-        <SectionHeader
-          eyebrow="Hot right now"
-          title="Trending events"
-          href="/events"
-        />
-        {trending.length ? (
+      {trending.length > 0 && (
+        <section className="container-page py-4">
+          <SectionHeader eyebrow="Fresh listings" title="New on Mehfil" href="/events" />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {trending.map((e) => (
               <EventCard key={e.id} event={e} />
             ))}
           </div>
-        ) : (
-          <EmptyState />
-        )}
-      </section>
+        </section>
+      )}
 
-      <Sponsors />
-
-      <section className="container-page py-16">
-        <SectionHeader eyebrow="Mark your calendar" title="Upcoming events" href="/events" />
-        {upcoming.length ? (
+      {upcoming.length > 0 && (
+        <section className="container-page py-16">
+          <SectionHeader eyebrow="Mark your calendar" title="Upcoming" href="/events" />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {upcoming.map((e) => (
               <EventCard key={e.id} event={e} />
             ))}
           </div>
-        ) : (
-          <EmptyState />
-        )}
-      </section>
+        </section>
+      )}
 
       {workshops.length > 0 && (
         <section className="container-page py-4">
           <SectionHeader
             eyebrow="Learn something new"
-            title="Popular workshops"
+            title="Workshops"
             href="/events?type=workshop"
           />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -120,11 +108,28 @@ export default async function HomePage() {
         <CityGrid cities={cities} />
       </section>
 
-      <Newsletter />
-
-      <section className="container-page py-16">
-        <SectionHeader eyebrow="Loved by thousands" title="What people say" />
-        <Testimonials />
+      {/* Partner with us — the second audience: companies */}
+      <section className="container-page pb-20">
+        <div className="overflow-hidden rounded-4xl bg-ink px-6 py-14 text-center sm:px-12">
+          <span className="mx-auto grid h-12 w-12 place-content-center rounded-2xl bg-white/10 text-white">
+            <Store className="h-6 w-6" />
+          </span>
+          <h2 className="heading-display mx-auto mt-5 max-w-2xl text-display-md text-white">
+            Run events, trips or activities? List them with us.
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-white/70">
+            We&apos;re onboarding businesses ahead of launch. Get your own dashboard to sell
+            tickets, manage bookings, and scan guests at the door.
+          </p>
+          <div className="mt-7">
+            <Link
+              href="/partner"
+              className="inline-flex h-12 items-center rounded-full bg-coral px-7 text-sm font-semibold text-white shadow-coral transition hover:bg-coral-600"
+            >
+              Partner with Mehfil
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   );

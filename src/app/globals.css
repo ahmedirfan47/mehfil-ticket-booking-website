@@ -2,28 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&display=swap");
+
 :root {
-  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "General Sans", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
 @layer base {
   * {
-    @apply border-line;
+    @apply border-mist;
   }
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-canvas text-ink antialiased;
+    @apply bg-paper text-ink antialiased;
     font-feature-settings: "ss01", "cv01";
   }
   ::selection {
-    @apply bg-primary/20 text-ink;
+    @apply bg-sky/20 text-ink;
   }
-  /* Visible keyboard focus everywhere (quality floor). */
   :focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-canvas;
+    @apply outline-none ring-2 ring-sky ring-offset-2 ring-offset-paper;
   }
 }
 
@@ -32,8 +33,9 @@
     @apply container mx-auto px-5;
   }
 
+  /* Eyebrow: quiet, not tracked-out all-caps (that's the generic tell). */
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+    @apply inline-flex items-center gap-2 text-sm font-medium text-sky;
   }
 
   .heading-display {
@@ -44,9 +46,7 @@
     @apply bg-white/70 backdrop-blur-xl border border-white/60;
   }
 
-  /* ── Signature: the perforated ticket-stub edge ──────────────────────────
-     A real ticket has a torn perforation. We draw it as a row of small
-     punched holes on the left edge of ticket cards and the printed ticket. */
+  /* Signature: the perforated ticket-stub edge. */
   .ticket-stub {
     position: relative;
   }
@@ -54,17 +54,16 @@
     content: "";
     position: absolute;
     left: -7px;
-    top: 14px;
-    bottom: 14px;
+    top: 16px;
+    bottom: 16px;
     width: 14px;
-    background-image: radial-gradient(circle at center, #fbfbfd 5px, transparent 5.5px);
+    background-image: radial-gradient(circle at center, #fbfcff 5px, transparent 5.5px);
     background-size: 14px 22px;
     background-repeat: repeat-y;
   }
 
-  /* Horizontal perforation divider used inside the printed ticket. */
   .perf-divide {
-    border-top: 2px dashed theme("colors.line");
+    border-top: 2px dashed theme("colors.mist");
     position: relative;
   }
   .perf-divide::before,
@@ -75,7 +74,7 @@
     width: 22px;
     height: 22px;
     border-radius: 9999px;
-    background: theme("colors.canvas");
+    background: theme("colors.paper");
   }
   .perf-divide::before { left: -11px; }
   .perf-divide::after  { right: -11px; }
