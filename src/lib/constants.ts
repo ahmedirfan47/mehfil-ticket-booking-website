@@ -1,8 +1,17 @@
 export const SITE = {
   name: "Mehfil",
-  tagline: "Gatherings worth showing up for.",
+  tagline: "Something to look forward to.",
   description:
-    "Discover concerts, workshops, festivals and tech events across Pakistan. Book in seconds, scan at the door.",
+    "Discover and book events, trips and activities across Pakistan. Book in seconds, scan at the door.",
+} as const;
+
+// All contact / operator details in one place — change here, updates everywhere.
+export const CONTACT = {
+  email: "mehfil@stonic.site",
+  operator: "Stonic",
+  city: "Lahore, Pakistan",
+  // Human sentence used on legal pages. No claim of incorporation.
+  entityLine: "Mehfil is a service operated by Stonic.",
 } as const;
 
 export const PRICE_FILTERS = [
