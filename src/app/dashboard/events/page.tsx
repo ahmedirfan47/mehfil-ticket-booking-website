@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Users, Pencil } from "lucide-react";
+import { Plus, Users, Pencil, Shield } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ORGANIZER_NAV } from "@/app/dashboard/page";
 import { Button } from "@/components/ui/button";
@@ -71,14 +71,13 @@ export default async function OrganizerEventsPage() {
                 <th className="px-5 py-3 font-medium">Sold</th>
                 <th className="px-5 py-3 font-medium">Revenue</th>
                 <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Manifest</th>
-                <th className="px-5 py-3 font-medium">Actions</th>
+                <th className="px-5 py-3 font-medium">Manage</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mist">
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-ink-muted">
+                  <td colSpan={7} className="px-5 py-10 text-center text-ink-muted">
                     No listings yet. Create your first one to start selling tickets.
                   </td>
                 </tr>
@@ -98,7 +97,7 @@ export default async function OrganizerEventsPage() {
                 );
                 const cancelled = e.status === "cancelled";
                 return (
-                  <tr key={e.id} className="hover:bg-sky-50/40">
+                  <tr key={e.id} className="hover:bg-sky-50/40 align-top">
                     <td className="px-5 py-3">
                       <Link href={`/events/${e.slug}`} className="font-medium text-ink hover:text-sky">
                         {e.title}
@@ -119,15 +118,19 @@ export default async function OrganizerEventsPage() {
                       <Badge tone={STATUS_TONE[e.status] ?? "neutral"}>{e.status}</Badge>
                     </td>
                     <td className="px-5 py-3">
-                      <Link
-                        href={`/dashboard/events/${e.id}/manifest`}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium text-sky hover:underline"
-                      >
-                        <Users className="h-3.5 w-3.5" /> View
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <Link
+                          href={`/dashboard/events/${e.id}/manifest`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-sky hover:underline"
+                        >
+                          <Users className="h-3.5 w-3.5" /> Manifest
+                        </Link>
+                        <Link
+                          href={`/dashboard/events/${e.id}/staff`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-sky hover:underline"
+                        >
+                          <Shield className="h-3.5 w-3.5" /> Staff
+                        </Link>
                         <Link
                           href={`/dashboard/events/${e.id}/edit`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-ink-soft hover:text-sky"
