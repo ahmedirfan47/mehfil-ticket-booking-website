@@ -6,6 +6,7 @@ import { RevenueArea, CategoryPie } from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
 import { VerificationReview } from "@/components/verification-review";
 import { BusinessReview } from "@/components/business-review";
+import { WaitlistExport } from "@/components/waitlist-export";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPKR, formatDateShort } from "@/lib/utils";
@@ -197,11 +198,14 @@ export default async function AdminDashboard() {
 
         {/* Waitlist */}
         <div className="mt-6 rounded-2xl border border-mist bg-white p-5 shadow-card">
-          <div className="mb-4 flex items-center gap-2">
-            <Mail className="h-5 w-5 text-sky" />
-            <h2 className="font-display text-lg font-semibold text-ink">
-              Launch waitlist ({waitlistCount ?? 0})
-            </h2>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-sky" />
+              <h2 className="font-display text-lg font-semibold text-ink">
+                Launch waitlist ({waitlistCount ?? 0})
+              </h2>
+            </div>
+            {(waitlistCount ?? 0) > 0 && <WaitlistExport />}
           </div>
           {waitRows.length === 0 ? (
             <p className="py-6 text-center text-sm text-ink-muted">No signups yet.</p>
@@ -232,8 +236,7 @@ export default async function AdminDashboard() {
                 </tbody>
               </table>
               <p className="mt-3 text-xs text-ink-muted">
-                Showing the 20 most recent of {waitlistCount ?? 0}. Full export and launch email
-                come with the email integration.
+                Showing the 20 most recent of {waitlistCount ?? 0}. Use Export CSV for the full list.
               </p>
             </div>
           )}
